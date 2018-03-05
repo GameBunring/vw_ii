@@ -8,16 +8,13 @@ import platform
 import time
 
 class VWPrintDialog():
-    def __init__(self, parent, values):
+    def __init__(self, parent, plates):
         _t = time.time()
         self.top = top = Toplevel(parent)
         self.top.title("打印预览")
         self.parent = parent
         self.printer = parent.printer
-        
-        self.type = 0
-        self.plates = values[1]
-        self.values = values[2]
+        self.plates = plates
         _img = self._gen_plate_img()
         self._img = _img.copy()
         _img.thumbnail((600,400), Image.ANTIALIAS)
@@ -36,11 +33,12 @@ class VWPrintDialog():
 
 
     @classmethod
-    def concate(cls, plate_chrs, size=512):
+    def concate(cls, plate_chrs, size=512, gap=None):
         import configparser, logging
         config = configparser.ConfigParser()
         config.read('config.ini')
-        gap = int(config['paras']['gap_10'])
+        if len(plate_chrs) == 2:
+            gap = gap if gap else int(config['paras']['gap_fuzheng'])
         if len(plate_chrs) == 8:
             gap = int(config['paras']['gap_6'])
         if len(plate_chrs) == 7:
@@ -70,56 +68,53 @@ class VWPrintDialog():
             x_offset += im.size[0] + gap
         return new_im
 
-    def _gen_meta_img(self):
-        text = list(self.values[:3])
-        if len(text[2]) > 10:
-            text[2] = self.values[3]
-        meta_im = self.generate_meta_image(text)
-        return meta_im
-    
     def _gen_plate_img(self):
-        new_im = self.generate_plate_image(self.plates, self.values)
+        new_im = self.generate_plate_image(self.plates)
         return new_im
 
     @classmethod
-    def generate_plate_image(cls, plates, values):
+    def generate_plate_image(cls, plates):
         import configparser
         config = configparser.ConfigParser()
         config.read('config.ini')
-        _left_main = int(config['paras']['left_main'])
+        _right_margin = int(config['paras']['right_margin'])
         _top_main = int(config['paras']['top_main'])
-        _length_main = int(config['paras']['length_main'])
-        _height_main = int(config['paras']['height_main'])
+        _length_main = int(config['paras']['max_length_main'])
+        _height_main = int(config['paras']['max_height_main'])
 
-        _length_sub = int(config['paras']['length_sub'])
-        _height_sub = int(config['paras']['height_sub'])
+        _height_sub = int(config['paras']['max_height_sub'])
         _top_sub = _top_main + int(config['paras']['separate']) + _height_main
 
         A4 = (2384, 3368)
         new_im = Image.new('RGB', (A4[1], A4[0]), (255, 255, 255))
-        assert plates
-        x_offset = _left_main
-        y_offset = _top_main
 
         plateImage = cls.concate(plates[0])
         plateImage.thumbnail((_length_main, _height_main), Image.ANTIALIAS)
-        plateImage.size
+        _left_main = A4[1] - _right_margin - plateImage.size[0]
+        y_offset = _top_main
+        x_offset = _left_main
+
         new_im.paste(plateImage, (x_offset, y_offset))
 
         if plates[1]:
+            subLabelImage = cls.concate('副证')
+            subLabelImage.thumbnail([2000, _height_sub], Image.ANTIALIAS)
+
             subPlateImage = cls.concate(plates[1])
-            subPlateImage.thumbnail([_length_sub, _height_sub], Image.ANTIALIAS)
+            subPlateImage.thumbnail([plateImage.size[0] - subLabelImage.size[0] - 80, _height_sub], Image.ANTIALIAS)
+
             y_offset = _top_sub
-            x_offset = plateImage.size[0] - subPlateImage.size[0]
+            x_offset = _left_main
+            new_im.paste(subLabelImage, (x_offset, y_offset))
+            
+            x_offset = _left_main + plateImage.size[0] - subPlateImage.size[0]
             new_im.paste(subPlateImage, (x_offset, y_offset))
 
-        # send_imgs_to_printer(new_im)
         return new_im
 
     def on_click_print(self):
         self.printer.print_img(self._img)        
         self.top.destroy()
-        self.parent.search()
     
     def on_click_save(self):
         self._img.save('.jpg'.format(self.plates[0]),'jpeg')

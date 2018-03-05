@@ -10,7 +10,7 @@ setup(
     	"icon_resources": [(1, "main.ico")]
     }],
     data_files=[("", ['2018车辆管理系统导入模板.xls', 'config.ini']),
-    	('icon', ['main.ico', 'vw.ico']),
+    	('icon', ['icon/main.ico', 'icon/vw.ico']),
     	("images", images)],
     options={
         'py2exe': {
