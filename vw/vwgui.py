@@ -60,4 +60,4 @@ class VWGui(tkinter.Frame):
             tkinter.messagebox.showinfo('车牌位数有误', '车牌位数有误，请核对无误再打印！')
         
         VWPrintDialog(self, (main_plate, sub_plate))
-
+        

@@ -1,35 +1,39 @@
 import pickle
 from tkinter import *
+import tkinter
 from tkinter.ttk import Treeview
 from vw.backend import VWBackend
-from vw.vwgui import VWGui
-
-# root = Tk()
-# tree = Treeview(root)
-# tree['columns'] = ("name", "main", "sub", "type", "zhongwai", "approver", "ID", "year", "phone")
-# tree.heading('#0', text='部门')
-# tree.heading('name', text='姓名')
-# tree.heading('main', text='主车牌')
-# tree.heading('sub', text='副车牌')
-# tree.heading('type', text='证件类型')
-# tree.heading('zhongwai', text='中外')
-# tree.heading('approver', text='审批人')
-# tree.heading('ID', text='ID')
-# tree.heading('year', text='年限')
-# tree.heading('phone', text='移动手机')
-
-# tree.insert("", "end", text="haha", values=("2A","2B"))
-
-# tree.pack()
-
-# root.mainloop()
-# root.filename = fileDialog.askopenfilename(initialdir = "/",title = "Select file",filetypes = (("jpeg files","*.jpg"),("all files","*.*")))
+from vw.vwactivate import VWActivate
+# from vw.vwgui import VWGui
+from datetime import date, timedelta
 
 def main():
     root = Tk()
     root.iconbitmap('icon/vw.ico')
+
+    expire_date = pickle.load(open('tcl/time', 'rb'))
+    expire_dates = (expire_date.year, expire_date.month, expire_date.day)
+
+    today = date.today()
+    if today < expire_date - timedelta(days=30):
+        pass
+    elif today < expire_date + timedelta(days=30):
+        VWActivate(root, expire_dates[0], expire_dates[1]， 1)
+    else:
+        VWActivate(root, expire_dates[0], expire_dates[1]， -1)
+    
+    if today >= expire_date + timedelta(days=30):
+        tkinter.messagebox.showerror('软件已过期，请注册后使用')
+        root.destroy()
+        sys.exit()
+             
     gui = VWGui(root)
     root.mainloop()
 
 if __name__=="__main__":
-    main()
+   # main()
+   expire_day = date(year=2018, month=2, day=26)
+   pickle.dump(expire_day, open('tcl/time', 'wb'))
+   print(status())
+   
+
