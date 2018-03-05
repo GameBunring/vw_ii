@@ -28,7 +28,6 @@ from vw.vwgui import VWGui
 def main():
     root = Tk()
     root.iconbitmap('icon/vw.ico')
-    _b = VWBackend()
     gui = VWGui(root, _b)
     root.mainloop()
 
