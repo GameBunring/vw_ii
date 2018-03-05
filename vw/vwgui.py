@@ -20,7 +20,7 @@ class VWGui(tkinter.Frame):
         Frame.__init__(self, parent, background='#000000')
         self.parent = parent
         self.parent.minsize(200, 100)
-        self.parent.geometry("400x100+100+100")
+        self.parent.geometry("400x100+300+300")
         self.printer = VWPrinter()
         self.initialize_user_interface()
 
