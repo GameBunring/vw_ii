@@ -81,5 +81,6 @@ class VWPrinter():
                 return False
 
         self.hDC.EndDoc ()
-        return True
         self.hDC.DeleteDC ()
+        return True
+        
