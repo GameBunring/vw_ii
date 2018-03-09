@@ -60,4 +60,25 @@ class VWGui(tkinter.Frame):
             tkinter.messagebox.showinfo('车牌位数有误', '车牌位数有误，请核对无误再打印！')
         
         VWPrintDialog(self, (main_plate, sub_plate))
-        
+
+    def print_all(self):
+
+        if(tkinter.messagebox.askyesno('全部打印','确定要打印这{}个车牌吗?'.format(len(self.table_values)))):
+            plates = [(i[2], i[3]) if i[3] else (i[2], ) for i in self.table_values]
+            print(plates)
+            _plate_imgs = (VWPrintDialog.generate_plate_image(value[2:4] if value[3] else value[2:3], value) \
+                for value in self.table_values)
+            if self.printer.print_imgs(_plate_imgs):
+                self.backend.set_ids_printed([i[7] for i in self.table_values])
+                self.search()
+            else:
+                tkinter.messagebox.showinfo('打印失败', '请重新启动软件或联系管理员')
+    
+    def load_xls(self):
+        import xlrd
+        worksheet = xlrd.open_workbook('2018停车证导入模板.xls').sheet_by_index(0)
+        res = []
+        for i in range(1, worksheet.nrows):
+            row_value = worksheet.row_values(i)
+            res.append((row_value[0], row_value[1]))
+        return res

@@ -9,7 +9,7 @@ setup(
     	{"script": 'main.py',
     	"icon_resources": [(1, "icon/main.ico")]
     }],
-    data_files=[("", ['2018车辆管理系统导入模板.xls', 'config.ini']),
+    data_files=[("", ['2018车辆管理系统导入模板.xls', 'ttime', 'config.ini']),
     	('icon', ['icon/main.ico', 'icon/vw.ico']),
     	("images", images)],
     options={

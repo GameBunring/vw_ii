@@ -28,8 +28,8 @@ def main():
 
 if __name__=="__main__":
    # main()
-   expire_day = date(year=2018, month=3, day=12)
-   pickle.dump(expire_day, open('ttime', 'wb'))
+   # expire_day = date(year=2018, month=3, day=12)
+   # pickle.dump(expire_day, open('ttime', 'wb'))
    main()
    
 

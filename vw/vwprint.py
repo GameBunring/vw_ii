@@ -15,6 +15,11 @@ class VWPrintDialog():
         self.parent = parent
         self.printer = parent.printer
         self.plates = plates
+        if plates[1]:
+            self.read_config(2)
+        else:
+            self.read_config(1)
+
         _img = self._gen_plate_img()
         self._img = _img.copy()
         _img.thumbnail((600,400), Image.ANTIALIAS)
@@ -30,19 +35,36 @@ class VWPrintDialog():
         print_button.grid(row=2, column=1, sticky='e')
         save_button = Button(top, text='保存', command=self.on_click_save)
         save_button.grid(row=2, column=0, sticky='w')
+        
 
-
-    @classmethod
-    def concate(cls, plate_chrs, size=512, gap=None):
+    def read_config(self, plates_num):
         import configparser, logging
         config = configparser.ConfigParser()
         config.read('config.ini')
-        if len(plate_chrs) == 2:
-            gap = gap if gap else int(config['paras']['gap_fuzheng'])
-        if len(plate_chrs) == 8:
-            gap = int(config['paras']['gap_6'])
-        if len(plate_chrs) == 7:
-            gap = int(config['paras']['gap_5'])
+        if plates_num == 2:
+            param_name = 'paras'
+            self.gap_fuzheng = int(config['paras']['gap_fuzheng'])
+            self.gap_6 = int(config['paras']['gap_6'])
+            self.gap_5 = int(config['paras']['gap_5'])
+            self.top_main = int(config[param_name]['top_main'])
+            self.height_sub = int(config[param_name]['max_height_sub'])
+            self.height_main = int(config[param_name]['max_height_main'])
+            self.top_sub = self.top_main + int(config[param_name]['separate']) + self.height_main
+
+
+        elif plates_num == 1:
+            param_name = 'paras_1'
+            self.gap_5 = int(config['paras_1']['gap_5'])
+            self.gap_6 = int(config['paras_1']['gap_6'])
+            self.top_main = int(config[param_name]['top_main'])
+            self.height_main = int(config[param_name]['max_height_main'])
+
+        self.right_margin = int(config[param_name]['right_margin'])
+        self.length_main = int(config[param_name]['max_length_main'])
+
+
+
+    def concate(self, plate_chrs, size=512, gap=None):
         listofimages = ['images/{}.jpg'.format(i) for i in plate_chrs]
         size = (size, size)
         def my_thumb(image_file, s):
@@ -53,6 +75,14 @@ class VWPrintDialog():
                 # TODO add logging handler
                 pass
             return image
+
+        gap = 0
+        if len(plate_chrs) == 2:
+            gap = self.gap_fuzheng
+        elif len(plate_chrs) == 7:
+            gap = self.gap_5
+        elif len(plate_chrs) == 8:
+            gap = self.gap_6
 
         thumbs = (my_thumb(i, size) for i in listofimages)
         widths, heights = zip(*(i.size for i in thumbs))
@@ -72,38 +102,28 @@ class VWPrintDialog():
         new_im = self.generate_plate_image(self.plates)
         return new_im
 
-    @classmethod
-    def generate_plate_image(cls, plates):
-        import configparser
-        config = configparser.ConfigParser()
-        config.read('config.ini')
-        _right_margin = int(config['paras']['right_margin'])
-        _top_main = int(config['paras']['top_main'])
-        _length_main = int(config['paras']['max_length_main'])
-        _height_main = int(config['paras']['max_height_main'])
 
-        _height_sub = int(config['paras']['max_height_sub'])
-        _top_sub = _top_main + int(config['paras']['separate']) + _height_main
+    def generate_plate_image(self, plates):
 
         A4 = (2384, 3368)
         new_im = Image.new('RGB', (A4[1], A4[0]), (255, 255, 255))
 
-        plateImage = cls.concate(plates[0])
-        plateImage.thumbnail((_length_main, _height_main), Image.ANTIALIAS)
-        _left_main = A4[1] - _right_margin - plateImage.size[0]
-        y_offset = _top_main
+        plateImage = self.concate(plates[0])
+        plateImage.thumbnail((self.length_main, self.height_main), Image.ANTIALIAS)
+        _left_main = A4[1] - self.right_margin - plateImage.size[0]
+        y_offset = self.top_main
         x_offset = _left_main
 
         new_im.paste(plateImage, (x_offset, y_offset))
 
         if plates[1]:
-            subLabelImage = cls.concate('副证')
-            subLabelImage.thumbnail([2000, _height_sub], Image.ANTIALIAS)
+            subLabelImage = self.concate('副证')
+            subLabelImage.thumbnail([2000, self.height_sub], Image.ANTIALIAS)
 
-            subPlateImage = cls.concate(plates[1])
-            subPlateImage.thumbnail([plateImage.size[0] - subLabelImage.size[0] - 80, _height_sub], Image.ANTIALIAS)
+            subPlateImage = self.concate(plates[1])
+            subPlateImage.thumbnail([plateImage.size[0] - subLabelImage.size[0] - 80, self.height_sub], Image.ANTIALIAS)
 
-            y_offset = _top_sub
+            y_offset = self.top_sub
             x_offset = _left_main
             new_im.paste(subLabelImage, (x_offset, y_offset))
             
