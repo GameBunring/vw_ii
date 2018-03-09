@@ -47,7 +47,7 @@ class VWGui(tkinter.Frame):
         self.print_button = Button(text="打印车牌", command=self.print_one)
         self.print_button.grid(row=2, column=3, sticky=E)
 
-        self.print_all_button = Button(text="批量打印", command=self.print_one)
+        self.print_all_button = Button(text="批量打印", command=self.print_all)
         self.print_all_button.grid(row=2, column=0, sticky=W)
     
     def print_one(self):
@@ -69,8 +69,8 @@ class VWGui(tkinter.Frame):
         if len(plates) > 30:
             tkinter.messagebox.showerror('车牌过多', '表格里有{}个车牌，一次最多打印30个车牌，请删除部分车牌后重试！'.format(len(plates)))
             return
-        if(tkinter.messagebox.askyesno('全部打印','确定要打印这{}个车牌吗?'.format(len(plates)))):
-            _plate_imgs = (VWPrintDialog.generate_plate_image(plates))
+        if(tkinter.messagebox.askyesno('全部打印','确定要打印这{}个车牌吗?可能需要等待较长时间！'.format(len(plates)))):
+            _plate_imgs = (VWPrintDialog().generate_plate_image(plate) for plate in plates)
             if self.printer.print_imgs(_plate_imgs):
                 tkinter.messagebox.showinfo('打印成功', '打印成功！')
             else:

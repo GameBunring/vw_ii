@@ -8,34 +8,35 @@ import platform
 import time
 
 class VWPrintDialog():
-    def __init__(self, parent, plates):
-        _t = time.time()
-        self.top = top = Toplevel(parent)
-        self.top.title("打印预览")
-        self.parent = parent
-        self.printer = parent.printer
-        self.plates = plates
-        if plates[1]:
-            self.read_config(2)
-        else:
-            self.read_config(1)
+    def __init__(self, parent=None, plates=None):
+        if parent:
+            _t = time.time()
+            self.top = top = Toplevel(parent)
+            self.top.title("打印预览")
+            self.parent = parent
+            self.printer = parent.printer
+            self.plates = plates
+            if plates[1]:
+                self.read_config(2)
+            else:
+                self.read_config(1)
 
-        _img = self._gen_plate_img()
-        self._img = _img.copy()
-        _img.thumbnail((600,400), Image.ANTIALIAS)
+            _img = self.generate_plate_img()
+            self._img = _img.copy()
+            _img.thumbnail((600,400), Image.ANTIALIAS)
 
-        canvas = Canvas(top, width=_img.size[0], height=_img.size[1], bd=2)
-        canvas.grid(row=0, columnspan=2)
-        tk_photo = ImageTk.PhotoImage(_img)
-        canvas.image = tk_photo
-        canvas.create_image(_img.size[0]//2, _img.size[1]//2, image=tk_photo)
-        sep = ttk.Separator(top)
-        sep.grid(row=1, columnspan=2, sticky=EW)
-        print_button = Button(top, text='打印', command=self.on_click_print)
-        print_button.grid(row=2, column=1, sticky='e')
-        save_button = Button(top, text='保存', command=self.on_click_save)
-        save_button.grid(row=2, column=0, sticky='w')
-        
+            canvas = Canvas(top, width=_img.size[0], height=_img.size[1], bd=2)
+            canvas.grid(row=0, columnspan=2)
+            tk_photo = ImageTk.PhotoImage(_img)
+            canvas.image = tk_photo
+            canvas.create_image(_img.size[0]//2, _img.size[1]//2, image=tk_photo)
+            sep = ttk.Separator(top)
+            sep.grid(row=1, columnspan=2, sticky=EW)
+            print_button = Button(top, text='打印', command=self.on_click_print)
+            print_button.grid(row=2, column=1, sticky='e')
+            save_button = Button(top, text='保存', command=self.on_click_save)
+            save_button.grid(row=2, column=0, sticky='w')
+
 
     def read_config(self, plates_num):
         import configparser, logging
@@ -73,6 +74,7 @@ class VWPrintDialog():
                 image.thumbnail(s, Image.ANTIALIAS)
             except FileNotFoundError:
                 # TODO add logging handler
+                print(image_file)
                 pass
             return image
 
@@ -98,12 +100,12 @@ class VWPrintDialog():
             x_offset += im.size[0] + gap
         return new_im
 
-    def _gen_plate_img(self):
-        new_im = self.generate_plate_image(self.plates)
-        return new_im
-
-
-    def generate_plate_image(self, plates):
+    def generate_plate_image(self, plates=None):
+        if plates:
+            if plates[1]:
+                self.read_config(2)
+            else:
+                self.read_config(1)
 
         A4 = (2384, 3368)
         new_im = Image.new('RGB', (A4[1], A4[0]), (255, 255, 255))
